@@ -39,6 +39,7 @@ public class WeatherInfoTests extends TestBase{
 		//http://restapi.demoqa.com/utilities/weather/city
 		RestAssured.baseURI = prop.getProperty("serviceurl");
 		
+		
 		//2. define the http request:
 		RequestSpecification httpRequest = RestAssured.given();
 		

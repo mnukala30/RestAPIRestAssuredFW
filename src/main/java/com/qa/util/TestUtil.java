@@ -3,7 +3,6 @@ package com.qa.util;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -15,14 +14,13 @@ public class TestUtil {
 	public final static int RESPONSE_CODE_201 = 201;
 	public final static int RESPONSE_CODE_400 = 400;
 	public final static int RESPONSE_CODE_401 = 401;
-	public final static String WeatherSheetName = "WeatherInfo";
+	public final static String WeatherSheetName = "GetAdmissions";
 
 	
 	static Workbook book;
 	static Sheet sheet;
 	
-	public static String TESTDATA_SHEET_PATH = "/Users/NaveenKhunteta/Documents/workspace/"
-			+ "RestAPIRestAssuredFW/src/main/java/com/qa/testdata/APITestData.xlsx";
+	public static String TESTDATA_SHEET_PATH = "C:\\Users\\Maheshn\\git\\RestAssuredFramework\\src\\main\\java\\com\\qa\\testdata\\APITestData.xlsx";
 	
 //get data from excel:
 	public static Object[][] getDataFromSheet(String sheetName){
@@ -34,8 +32,6 @@ public class TestUtil {
 		}
 		try {
 			book = WorkbookFactory.create(file);
-		} catch (InvalidFormatException e) {
-			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -51,9 +47,5 @@ public class TestUtil {
 		}
 		return data;
 	}
-	
-	
-	
-	
 
 }

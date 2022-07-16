@@ -2,25 +2,38 @@ package com.qa.util;
 
 
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 
+import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFCreationHelper;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFHyperlink;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 public class Xls_reader {
 	//public static String filename = System.getProperty("user.dir")+"\\src\\com\\qtpselenium\\xlsx\\Suite.xlsx";
@@ -91,9 +104,9 @@ public Xls_reader(String path) {
 			if(cell==null)
 				return "";
 			//System.out.println(cell.getCellType());
-			if(cell.getCellType()==Cell.CELL_TYPE_STRING)
+			if(cell.getCellType()==CellType.STRING)
 				  return cell.getStringCellValue();
-			else if(cell.getCellType()==Cell.CELL_TYPE_NUMERIC || cell.getCellType()==Cell.CELL_TYPE_FORMULA ){
+			else if(cell.getCellType()==CellType.NUMERIC || cell.getCellType()==CellType.FORMULA ){
 				  
 				  String cellText  = String.valueOf(cell.getNumericCellValue());
 				  if (HSSFDateUtil.isCellDateFormatted(cell)) {
@@ -115,7 +128,7 @@ public Xls_reader(String path) {
 				  
 				  
 				  return cellText;
-			  }else if(cell.getCellType()==Cell.CELL_TYPE_BLANK)
+			  }else if(cell.getCellType()==CellType.BLANK)
 			      return ""; 
 			  else 
 				  return String.valueOf(cell.getBooleanCellValue());
@@ -149,9 +162,9 @@ public Xls_reader(String path) {
 			if(cell==null)
 				return "";
 			
-		  if(cell.getCellType()==Cell.CELL_TYPE_STRING)
+		  if(cell.getCellType()==CellType.STRING)
 			  return cell.getStringCellValue();
-		  else if(cell.getCellType()==Cell.CELL_TYPE_NUMERIC || cell.getCellType()==Cell.CELL_TYPE_FORMULA ){
+		  else if(cell.getCellType()==CellType.NUMERIC || cell.getCellType()==CellType.FORMULA ){
 			  
 			  String cellText  = String.valueOf(cell.getNumericCellValue());
 			  if (HSSFDateUtil.isCellDateFormatted(cell)) {
@@ -173,7 +186,7 @@ public Xls_reader(String path) {
 			  
 			  
 			  return cellText;
-		  }else if(cell.getCellType()==Cell.CELL_TYPE_BLANK)
+		  }else if(cell.getCellType()==CellType.BLANK)
 		      return "";
 		  else 
 			  return String.valueOf(cell.getBooleanCellValue());
@@ -289,7 +302,7 @@ public Xls_reader(String path) {
 		    hlink_style.setFont(hlink_font);
 		    //hlink_style.setWrapText(true);
 
-		    XSSFHyperlink link = createHelper.createHyperlink(XSSFHyperlink.LINK_FILE);
+		    XSSFHyperlink link = createHelper.createHyperlink(HyperlinkType.URL);
 		    link.setAddress(url);
 		    cell.setHyperlink(link);
 		    cell.setCellStyle(hlink_style);
@@ -354,8 +367,6 @@ public Xls_reader(String path) {
 					return false;
 				
 			XSSFCellStyle style = workbook.createCellStyle();
-			style.setFillForegroundColor(HSSFColor.GREY_40_PERCENT.index);
-			style.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
 			
 			sheet=workbook.getSheetAt(index);
 			
@@ -396,9 +407,6 @@ public Xls_reader(String path) {
 			workbook = new XSSFWorkbook(fis);
 			sheet=workbook.getSheet(sheetName);
 			XSSFCellStyle style = workbook.createCellStyle();
-			style.setFillForegroundColor(HSSFColor.GREY_40_PERCENT.index);
-			XSSFCreationHelper createHelper = workbook.getCreationHelper();
-			style.setFillPattern(HSSFCellStyle.NO_FILL);
 			
 		    
 		
@@ -485,7 +493,68 @@ public Xls_reader(String path) {
 			return -1;
 			
 		}
-			
+		
+		public static JsonObject getExcelDataAsJsonObject(File excelFile) {
+
+		    JsonObject sheetsJsonObject = new JsonObject();
+		    Workbook workbook = null;
+
+		    try {
+		        workbook = new XSSFWorkbook(excelFile);
+		    } catch (Exception e) {
+		    }
+
+		    for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+
+		        JsonArray sheetArray = new JsonArray();
+		        ArrayList<String> columnNames = new ArrayList<String>();
+		        Sheet sheet = workbook.getSheetAt(i);
+		        Iterator<Row> sheetIterator = sheet.iterator();
+
+		        while (sheetIterator.hasNext()) {
+
+		            Row currentRow = sheetIterator.next();
+		            JsonObject jsonObject = new JsonObject();
+
+		            if (currentRow.getRowNum() != 0) {
+
+		                for (int j = 0; j < columnNames.size(); j++) {
+
+		                    if (currentRow.getCell(j) != null) {
+		                        if (currentRow.getCell(j).getCellType() == CellType.STRING) {
+		                            jsonObject.addProperty(columnNames.get(j), currentRow.getCell(j).getStringCellValue());
+		                        } else if (currentRow.getCell(j).getCellType() == CellType.NUMERIC) {
+		                            jsonObject.addProperty(columnNames.get(j), currentRow.getCell(j).getNumericCellValue());
+		                        } else if (currentRow.getCell(j).getCellType() == CellType.BOOLEAN) {
+		                            jsonObject.addProperty(columnNames.get(j), currentRow.getCell(j).getBooleanCellValue());
+		                        } else if (currentRow.getCell(j).getCellType() == CellType.BLANK) {
+		                            jsonObject.addProperty(columnNames.get(j), "");
+		                        }
+		                    } else {
+		                        jsonObject.addProperty(columnNames.get(j), "");
+		                    }
+
+		                }
+
+		                sheetArray.add(jsonObject);
+
+		            } else {
+		                // store column names
+		                for (int k = 0; k < currentRow.getPhysicalNumberOfCells(); k++) {
+		                    columnNames.add(currentRow.getCell(k).getStringCellValue());
+		                }
+		            }
+
+		        }
+
+		        sheetsJsonObject.add(workbook.getSheetName(i), sheetArray);
+
+		    }
+
+		    return sheetsJsonObject;
+
+		}
+		
 		// to run this on stand alone
 		public static void main(String arg[]) throws IOException{
 			
